@@ -2,8 +2,8 @@ name: TikTok Bot Runner
 
 on:
   schedule:
-    - cron: '*/20 * * * *' # በየ 20 ደቂቃው ራሱን ይቀሰቅሳል
-  workflow_dispatch: # በእጅህ ለማስጀመር
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
 
 jobs:
   run-bot:
@@ -23,6 +23,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Bot
-        env:
-          API_TOKEN: ${{ secrets.API_TOKEN }} # ይህ ለደህንነት ነው
-        run: run: python main.py
+        run: python main.py
