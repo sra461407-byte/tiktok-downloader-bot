@@ -25,4 +25,4 @@ jobs:
       - name: Run Bot
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }} # ይህ ለደህንነት ነው
-        run: python tiktok-downloader-bot.py
+        run: run: python main.py
