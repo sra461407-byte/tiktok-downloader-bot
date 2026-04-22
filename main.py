@@ -21,17 +21,20 @@ def handle_tiktok(message):
     msg = bot.reply_to(message, "⏳ **Processing your link... Please wait.**", parse_mode='Markdown')
     
     try:
-        # TikTok API Request
         api_url = f"https://www.tikwm.com/api/?url={url}"
         response = requests.get(api_url).json()
         
         if response['code'] == 0:
             video_data = response['data']
+            video_id = video_data['id']
+            # እዚህ ጋር ለጊዜው No Watermark ሊንኩን እናስቀምጣለን
+            no_wm_url = video_data['play']
+            wm_url = video_data['wmplay']
             
-            # Creating Buttons for Quality Options
             markup = types.InlineKeyboardMarkup()
-            btn1 = types.InlineKeyboardButton("🚀 No Watermark (HD)", callback_data=f"hd_{video_data['id']}")
-            btn2 = types.InlineKeyboardButton("🎬 Original (Watermark)", callback_data=f"wm_{video_data['id']}")
+            # ዳታውን በ callback_data በኩል እናስተላልፋለን
+            btn1 = types.InlineKeyboardButton("🚀 No Watermark (HD)", callback_data=f"dl_no_{video_id}")
+            btn2 = types.InlineKeyboardButton("🎬 Original (Watermark)", callback_data=f"dl_wm_{video_id}")
             markup.add(btn1, btn2)
             
             bot.edit_message_text(
@@ -41,27 +44,46 @@ def handle_tiktok(message):
                 reply_markup=markup,
                 parse_mode='Markdown'
             )
-            
-            # Temporary storage to handle callback (Simplified for this version)
-            # In a real bot, we'd use a database, but for now we'll fetch again in callback
         else:
             bot.edit_message_text("❌ **Invalid link or Video not found.**", message.chat.id, msg.message_id)
             
     except Exception as e:
         bot.edit_message_text("⚠️ **Error occurred while fetching video.**", message.chat.id, msg.message_id)
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    # This part fetches the link again based on choice
-    # Note: For better performance, we use the video ID
-    bot.answer_callback_query(call.id, "Preparing your video...")
+@bot.callback_query_handler(func=lambda call: call.data.startswith('dl_'))
+def handle_download(call):
+    video_id = call.data.split('_')[2]
+    type_choice = call.data.split('_')[1] # 'no' ወይም 'wm'
     
-    # We'll need the original URL or a direct download link
-    # For simplicity in this GitHub version, we re-fetch briefly or provide the stored link
-    bot.send_message(call.message.chat.id, f"📥 **Sending your video...**\nFollow: {CHANNEL_USERNAME}")
-
-# To make the bot fully functional with quality choice, we usually need to store the link temporarily.
-# For now, let's keep it simple. If you want a more advanced version with DB, let me know!
+    bot.answer_callback_query(call.id, "Downloading video...")
+    
+    # ተጠቃሚው የመረጠውን ለማግኘት በድጋሚ API እንጠይቃለን (ቀላሉ መንገድ ይሄ ነው)
+    try:
+        # መጀመሪያ "Sending" የሚለውን መልእክት እናሳይ
+        status_msg = bot.send_message(call.message.chat.id, "📥 **Downloading to our server...**", parse_mode='Markdown')
+        
+        # የቪዲዮውን ሊንክ በ ID ማግኘት ስላልቻልን በቪዲዮው ኦሪጅናል ሊንክ ፋንታ ቀጥታ API እንጠቀማለን
+        # ማሳሰቢያ፡ ለተሟላ ስራ የቪዲዮውን ሊንክ ለጊዜው በዳታቤዝ መያዝ ይመረጣል
+        # ግን አሁን ለሙከራ ያህል ቀጥታ ቪዲዮውን ለመላክ እንሞክር
+        
+        api_url = f"https://www.tikwm.com/api/?id={video_id}" # በ ID ለመጠየቅ
+        res = requests.get(api_url).json()
+        
+        if type_choice == 'no':
+            final_video = res['data']['play']
+        else:
+            final_video = res['data']['wmplay']
+            
+        bot.send_video(
+            call.message.chat.id, 
+            final_video, 
+            caption=f"✅ **Success!**\n\n📢 Join: {CHANNEL_USERNAME}",
+            parse_mode='Markdown'
+        )
+        bot.delete_message(call.message.chat.id, status_msg.message_id)
+        
+    except Exception as e:
+        bot.send_message(call.message.chat.id, "❌ **Sorry, I couldn't send the video. Try again later.**")
 
 if __name__ == "__main__":
     bot.infinity_polling()
