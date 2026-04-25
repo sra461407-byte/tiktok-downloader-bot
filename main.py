@@ -10,7 +10,7 @@ bot = telebot.TeleBot(API_TOKEN)
 
 # ያንተ መረጃዎች
 CHANNEL_ID = "@TokSaveHub" 
-ADMIN_ID = 8643345893 # እዚህ ጋር በ @userinfobot ያገኘኸውን ያንተን ID ተካው
+ADMIN_ID = 8157391333 # እዚህ ጋር በ @userinfobot ያገኘኸውን ያንተን ID ተካው
 
 # ተጠቃሚዎችን ለመመዝገብ የሚያገለግል ፋይል
 USER_FILE = "users.txt"
