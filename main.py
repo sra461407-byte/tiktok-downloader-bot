@@ -5,7 +5,7 @@ from telebot import types
 import os
 
 # የቦት መለያ (Token)
-API_TOKEN = '8643345893:AAEG8UNOaOUYTslLV8oAkjMQTNoEWoOlVQY'
+API_TOKEN = '8643345893:8560255786:AAHp95uRgo9GRFKkF3pOw7wCXVPZFXVLQqs'
 bot = telebot.TeleBot(API_TOKEN)
 
 # ያንተ መረጃዎች
